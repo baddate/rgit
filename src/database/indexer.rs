@@ -1,8 +1,6 @@
 use std::{
-    collections::{BTreeMap, HashSet},
     ffi::OsStr,
     fmt::Debug,
-    io::{BufRead, BufReader},
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -21,16 +19,20 @@ use time::{OffsetDateTime, UtcOffset};
 use tracing::{error, info, info_span, instrument, warn};
 use xxhash_rust::xxh3::Xxh3;
 
-use crate::{
-    database::schema::{
-        commit::Commit,
-        repository::{ArchivedRepository, Repository, RepositoryId},
-        tag::{Tag, TagTree},
-    },
-    git::{PathVisitor, PathVisitorHandler},
-};
+use crate::database::schema::repository::{ArchivedRepository, Repository, RepositoryId};
 
 use super::schema::tree::{SortedTree, SortedTreeItem, Tree, TreeItem, TreeItemKind, TreeKey};
+
+fn parse_config_bool(value: Option<gix::config::Value<'_>>) -> bool {
+    let Some(value) = value else {
+        return false;
+    };
+
+    match value.to_str_lossy().as_ref() {
+        "1" | "true" | "yes" | "on" => true,
+        _ => false,
+    }
+}
 
 pub fn run(scan_path: &Path, repository_list: Option<&Path>, db: &Arc<rocksdb::DB>) {
     let span = info_span!("index_update");
@@ -61,10 +63,14 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
             continue;
         };
 
-        let id = match Repository::open(db, relative) {
-            Ok(v) => v.map_or_else(RepositoryId::new, |v| {
-                RepositoryId(v.get().id.0.to_native())
-            }),
+        let ignore_repository = {
+            let config = git_repository.config_snapshot();
+            parse_config_bool(config.value("cgit.ignore").ok().flatten())
+                || parse_config_bool(config.value("rgit.ignore").ok().flatten())
+        };
+
+        let opened = match Repository::open(db, relative) {
+            Ok(v) => v,
             Err(error) => {
                 // maybe we could nuke it ourselves, but we need to instantly trigger
                 // a reindex and we could enter into an infinite loop if there's a bug
@@ -73,6 +79,20 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
                 continue;
             }
         };
+
+        if ignore_repository {
+            if let Some(existing) = opened {
+                if let Err(error) = existing.get().delete(db, relative) {
+                    warn!(%error, "Failed to delete ignored repository from index");
+                }
+            }
+
+            continue;
+        }
+
+        let id = opened.map_or_else(RepositoryId::new, |v| {
+            RepositoryId(v.get().id.0.to_native())
+        });
 
         let Some(name) = relative.file_name().and_then(OsStr::to_str) else {
             continue;
