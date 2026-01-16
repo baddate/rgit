@@ -13,7 +13,7 @@ members = ["tree-sitter-grammar-repository"]
 
 [dependencies]
 anyhow = "1.0"
-arc-swap = "1.7"
+arc-swap = "1.8"
 askama = { version = "0.13.0", default-features = false, features = [
   "derive",
   "std",
