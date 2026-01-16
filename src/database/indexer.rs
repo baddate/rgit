@@ -32,6 +32,17 @@ use crate::{
 
 use super::schema::tree::{SortedTree, SortedTreeItem, Tree, TreeItem, TreeItemKind, TreeKey};
 
+fn parse_config_bool(value: Option<String>) -> bool {
+    let Some(value) = value else {
+        return false;
+    };
+
+    match value.as_str() {
+        "1" | "true" | "yes" | "on" => true,
+        _ => false,
+    }
+}
+
 pub fn run(scan_path: &Path, repository_list: Option<&Path>, db: &Arc<rocksdb::DB>) {
     let span = info_span!("index_update");
     let _entered = span.enter();
@@ -61,10 +72,14 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
             continue;
         };
 
-        let id = match Repository::open(db, relative) {
-            Ok(v) => v.map_or_else(RepositoryId::new, |v| {
-                RepositoryId(v.get().id.0.to_native())
-            }),
+        let ignore_repository = {
+            let config = git_repository.config_snapshot();
+            parse_config_bool(config.string("cgit.ignore").map(|v| v.to_string()))
+                || parse_config_bool(config.string("rgit.ignore").map(|v| v.to_string()))
+        };
+
+        let opened = match Repository::open(db, relative) {
+            Ok(v) => v,
             Err(error) => {
                 // maybe we could nuke it ourselves, but we need to instantly trigger
                 // a reindex and we could enter into an infinite loop if there's a bug
@@ -73,6 +88,20 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
                 continue;
             }
         };
+
+        if ignore_repository {
+            if let Some(existing) = opened {
+                if let Err(error) = existing.get().delete(db, relative) {
+                    warn!(%error, "Failed to delete ignored repository from index");
+                }
+            }
+
+            continue;
+        }
+
+        let id = opened.map_or_else(RepositoryId::new, |v| {
+            RepositoryId(v.get().id.0.to_native())
+        });
 
         let Some(name) = relative.file_name().and_then(OsStr::to_str) else {
             continue;
