@@ -32,6 +32,11 @@ pub struct Repository {
     ///
     /// This is set to `true` based on the presence of `git-daemon-export-ok` in the repository
     pub exported: bool,
+    /// Whether the repository is hidden from the index listing (but still accessible by direct URL).
+    ///
+    /// This is set to `true` based on `cgit.hide = true` or `gitweb.hidden = true` in the
+    /// repository's git config, mimicking cgit's hidden repository behaviour.
+    pub hidden: bool,
 }
 
 pub type YokedRepository = Yoked<&'static <Repository as Archive>::Archived>;

@@ -51,6 +51,7 @@ pub async fn handle(
     // as a TODO.
     let repositories = fetched
         .iter()
+        .filter(|(_, repo)| !repo.get().hidden)
         .group_by(|(k, _)| memchr::memrchr(b'/', k.as_bytes()).map_or("", |idx| &k[..idx]));
 
     Ok(into_response(View {

@@ -19,6 +19,7 @@ Includes a dark mode for late night committing.
   - [Configuration](#configuration)
     - [Repository Description](#repository-description)
     - [Repository Owner](#repository-owner)
+    - [Hidden Repositories](#hidden-repositories)
   - [NixOS](#nixos)
   - [Docker](#docker)
     - [Docker Compose](#docker-compose)
@@ -106,6 +107,34 @@ To assign an owner to a repository, edit the file named `config` inside the bare
 ```
 
 Replace `Al Gorithm` with the desired owner's name.
+
+#### Hidden Repositories
+
+Repositories can be hidden from the index listing while still remaining accessible via their
+direct URL. This mirrors the behaviour of [cgit's `hide` option][cgit-hide].
+
+To hide a repository, add one of the following to the `config` file inside the bare git
+repository:
+
+```ini
+[rgit]
+    ignore = true
+```
+
+or, using the `gitweb`/`cgit` namespace (also recognised by gitweb itself):
+
+```ini
+[gitweb]
+    ignore = true
+
+[cgit]
+    ignore = true
+```
+
+Either key is sufficient. Hidden repositories are **still cloneable and browseable** — they
+simply will not appear in the repository list on the index page.
+
+[cgit-hide]: https://git.zx2c4.com/cgit/tree/cgitrc.5.txt
 
 ### NixOS
 

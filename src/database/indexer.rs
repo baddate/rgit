@@ -82,10 +82,15 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
             .ok()
             .filter(|v| !v.is_empty());
 
-        let owner = git_repository
-            .config_snapshot()
-            .string("gitweb.owner")
-            .map(|v| v.to_string());
+        let config = git_repository.config_snapshot();
+
+        let owner = config.string("gitweb.owner").map(|v| v.to_string());
+
+        // Support cgit.hide and gitweb.hidden: hides repo from index while still
+        // allowing direct URL access, mirroring cgit behaviour.
+        let hidden = config.boolean("cgit.ignore").unwrap_or(false)
+            || config.boolean("rgit.ignore").unwrap_or(false)
+            || config.boolean("gitweb.ignore").unwrap_or(false);
 
         let res = Repository {
             id,
@@ -99,6 +104,7 @@ fn update_repository_metadata(scan_path: &Path, repository_list: Option<&Path>, 
             },
             default_branch: find_default_branch(&git_repository).ok().flatten(),
             exported: repository_path.join("git-daemon-export-ok").exists(),
+            hidden,
         }
         .insert(db, relative);
 
