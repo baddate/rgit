@@ -12,11 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Cache dependencies via dummy build
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir -p src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release 2>/dev/null || true
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release 2>/dev/null || true
 
 # Build actual binary
 COPY . .
-RUN cargo build --release
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release
 
 FROM debian:bookworm-slim
 
