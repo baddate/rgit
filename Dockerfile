@@ -3,6 +3,8 @@ FROM rust:1.88-bookworm AS builder
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    libclang-dev \
     libsnappy-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
