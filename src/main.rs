@@ -47,8 +47,7 @@ use crate::{
     },
     git::Git,
     layers::logger::LoggingMiddleware,
-    syntax_highlight::prime_highlighters,
-    theme::Theme,
+    syntax_highlight::{dark_highlight_css, light_highlight_css, prime_syntax_set},
 };
 
 mod database;
@@ -56,7 +55,6 @@ mod git;
 mod layers;
 mod methods;
 mod syntax_highlight;
-mod theme;
 mod unified_diff_builder;
 
 const CRATE_VERSION: &str = clap::crate_version!();
@@ -147,11 +145,9 @@ async fn main() -> Result<(), anyhow::Error> {
     );
 
     let css = {
-        let theme = basic_toml::from_str::<Theme>(include_str!("../themes/github_light.toml"))
-            .unwrap()
-            .build_css();
+        let theme_css = light_highlight_css();
         let css = Box::leak(
-            format!("@media (prefers-color-scheme: light){{{theme}}}")
+            format!("@media (prefers-color-scheme: light){{{theme_css}}}")
                 .into_boxed_str()
                 .into_boxed_bytes(),
         );
@@ -160,11 +156,9 @@ async fn main() -> Result<(), anyhow::Error> {
     };
 
     let dark_css = {
-        let theme = basic_toml::from_str::<Theme>(include_str!("../themes/onedark.toml"))
-            .unwrap()
-            .build_css();
+        let theme_css = dark_highlight_css();
         let css = Box::leak(
-            format!("@media (prefers-color-scheme: dark){{{theme}}}")
+            format!("@media (prefers-color-scheme: dark){{{theme_css}}}")
                 .into_boxed_str()
                 .into_boxed_bytes(),
         );
@@ -194,8 +188,8 @@ async fn main() -> Result<(), anyhow::Error> {
         }
     };
 
-    info!("Priming highlighters...");
-    prime_highlighters();
+    info!("Priming syntax set...");
+    prime_syntax_set();
     info!("Server starting up...");
 
     let app = Router::new()
