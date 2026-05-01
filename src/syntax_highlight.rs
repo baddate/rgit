@@ -6,9 +6,9 @@ use std::{
 
 use comrak::adapters::SyntaxHighlighterAdapter;
 use syntect::{
-    html::{ClassStyle, ClassedHTMLGenerator, css_for_theme_with_class_style},
+    html::{ClassStyle, line_tokens_to_classed_spans, css_for_theme_with_class_style},
     highlighting::ThemeSet,
-    parsing::SyntaxSet,
+    parsing::{ParseState, ScopeStack, SyntaxSet},
     util::LinesWithEndings,
 };
 
@@ -18,7 +18,7 @@ static SYNTAX_SET: LazyLock<SyntaxSet> = LazyLock::new(SyntaxSet::load_defaults_
 static THEME_SET: LazyLock<ThemeSet> = LazyLock::new(ThemeSet::load_defaults);
 
 pub fn prime_syntax_set() {
-    let _ = SYNTAX_SET.len();
+    let _ = SYNTAX_SET.syntaxes().len();
 }
 
 pub fn light_highlight_css() -> &'static str {
@@ -94,7 +94,16 @@ pub fn format_file_inner(
     let line_prefix = if code_tag { "<code>" } else { "" };
     let line_suffix = if code_tag { "</code>\n" } else { "\n" };
 
-    if syntax.is_none() || content.len() > MAX_FILE_SIZE {
+    let Some(syntax) = syntax else {
+        for line in content.lines() {
+            out.push_str(line_prefix);
+            v_htmlescape::b_escape(line.as_bytes(), out);
+            out.push_str(line_suffix);
+        }
+        return Ok(());
+    };
+
+    if content.len() > MAX_FILE_SIZE {
         for line in content.lines() {
             out.push_str(line_prefix);
             v_htmlescape::b_escape(line.as_bytes(), out);
@@ -103,14 +112,21 @@ pub fn format_file_inner(
         return Ok(());
     }
 
-    let syntax = syntax.unwrap();
-    let mut html_generator =
-        ClassedHTMLGenerator::new_with_class_style(syntax, &SYNTAX_SET, ClassStyle::Spaced);
+    let mut parse_state = ParseState::new(syntax);
+    let mut scope_stack = ScopeStack::new();
 
     for line in LinesWithEndings::from(content) {
         out.push_str(line_prefix);
-        match html_generator.parse_line_for_classed_html(line) {
-            Ok(highlighted) => out.push_str(&highlighted),
+        match parse_state.parse_line(line, &SYNTAX_SET) {
+            Ok(ops) => match line_tokens_to_classed_spans(
+                line,
+                &ops,
+                ClassStyle::Spaced,
+                &mut scope_stack,
+            ) {
+                Ok((html, _)) => out.push_str(&html),
+                Err(_) => v_htmlescape::b_escape(line.as_bytes(), out),
+            },
             Err(_) => v_htmlescape::b_escape(line.as_bytes(), out),
         }
         out.push_str(line_suffix);
