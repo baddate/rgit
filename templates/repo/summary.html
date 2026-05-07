@@ -78,8 +78,12 @@
     </tr>
     <tr>
         <td colspan="4">
-            <a rel="vcs-git" href="/{{ repo.display() }}" title="{{ repo.display() }} Git repository">
+            <a rel="vcs-git" href="https://{{ host }}/{{ repo.display() }}" title="{{ repo.display() }} Git repository">
                 https://{{ host }}/{{ repo.display() }}
+            </a>
+            <br />
+            <a rel="vcs-git" href="ssh://{{ ssh_clone_url }}" title="{{ repo.display() }} Git repository">
+                ssh://{{ ssh_clone_url }}
             </a>
         </td>
     </tr>
