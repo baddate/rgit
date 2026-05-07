@@ -115,7 +115,7 @@ pub fn format_file_inner(
     };
 
     let line_prefix = if code_tag { "<code>" } else { "" };
-    let line_suffix = if code_tag { "</code>\n" } else { "\n" };
+    let line_suffix = if code_tag { "</code>" } else { "" };
 
     let Some(syntax) = syntax else {
         for line in content.lines() {
@@ -166,5 +166,7 @@ fn find_syntax_by_token(token: &str) -> Option<&'static syntect::parsing::Syntax
     if token.is_empty() {
         return None;
     }
-    SYNTAX_SET.find_syntax_by_name(token)
+    SYNTAX_SET
+        .find_syntax_by_token(token)
+        .or_else(|| SYNTAX_SET.find_syntax_by_name(token))
 }
