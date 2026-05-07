@@ -1,58 +1,65 @@
-{% extends "base.html" %}
-
-{% block content %}
-    <div class="table-responsive">
+{% extends "base.html" %} {% block content %}
+<div class="table-responsive">
     <table class="repositories">
         <thead>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Owner</th>
-            <th>Idle</th>
-        </tr>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Owner</th>
+                <th>Idle</th>
+            </tr>
         </thead>
 
         <tbody>
-        {%- for (path, repositories) in self.take_iter() %}
-            {%- if !path.is_empty() %}
-            <tr><td class="repo-section" colspan="4">{{ path }}</td></tr>
-            {%- endif -%}
-
-            {%- for repository in repositories %}
-            {% set repository = repository.1.get() %}
+            {%- for (path, repositories) in self.take_iter() %} {%- if
+            !path.is_empty() %}
+            <tr>
+                <td class="repo-section" colspan="4">{{ path }}</td>
+            </tr>
+            {%- endif -%} {%- for repository in repositories %} {% set
+            repository = repository.1.get() %}
             <tr class="{% if !path.is_empty() %}has-parent{% endif %}">
                 <td>
-                    <a href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}">
+                    <a
+                        href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}"
+                    >
                         {{- repository.name -}}
                     </a>
                 </td>
                 <td>
-                    <a href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}">
-                        {%- if let Some(description) = repository.description.as_ref() -%}
-                            {{- description -}}
-                        {%- else -%}
-                            Unnamed repository; edit this file 'description' to name the repository.
-                        {%- endif -%}
+                    <a
+                        href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}"
+                    >
+                        {%- if let Some(description) =
+                        repository.description.as_ref() -%} {{- description -}}
+                        {%- else -%} Unnamed repository; edit this file
+                        'description' to name the repository. {%- endif -%}
                     </a>
                 </td>
                 <td>
-                    <a href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}">
+                    <a
+                        href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}"
+                    >
                         {%- if let Some(owner) = repository.owner.as_ref() -%}
-                            {{- owner -}}
-                        {%- endif -%}
+                        {{- owner -}} {%- endif -%}
                     </a>
                 </td>
                 <td>
-                    <a href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}">
-                        <time datetime="{{ repository.last_modified|format_time }}" title="{{ repository.last_modified|format_time }}">
+                    <a
+                        href="/{% if !path.is_empty() %}{{ path }}/{% endif %}{{ repository.name }}"
+                    >
+                        <time
+                            datetime="{{ repository.last_modified|format_time }}"
+                            title="{{ repository.last_modified|format_time }}"
+                            class="{{ repository.last_modified|age_class }}"
+                        >
                             {{- repository.last_modified|timeago -}}
                         </time>
                     </a>
                 </td>
             </tr>
-            {%- endfor -%}
-        {%- endfor %}
+            {%- endfor -%} {%- endfor %}
         </tbody>
     </table>
-    </div>
+</div>
 {% endblock %}

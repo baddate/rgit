@@ -1,86 +1,107 @@
-@import 'colours';
+@import "colours";
 
 .table-responsive {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
 }
 
 table {
-  color: var(--accent);
-  border-collapse: collapse;
+    color: var(--accent);
+    border-collapse: collapse;
 
-  th, td {
-    white-space: nowrap;
-    padding-right: 10px;
+    th,
+    td {
+        white-space: nowrap;
+        padding-right: 10px;
 
-    &:last-of-type {
-      padding-right: 0;
+        &:last-of-type {
+            padding-right: 0;
+        }
     }
-  }
 
-  th {
-    text-align: left;
-  }
+    th {
+        text-align: left;
+    }
 }
 
 table.repositories {
-  width: 100%;
+    width: 100%;
 
-  a {
-    color: var(--text);
+    a {
+        color: var(--text);
 
-    &:hover {
-      color: var(--accent);
-      text-decoration: underline;
-    }
-  }
-
-  tbody {
-    tr {
-      height: 1.3rem;
-      vertical-align: middle;
-
-      &:nth-child(odd) {
-        background: var(--table-stripe);
-      }
-
-      &:nth-child(even) {
-        background: var(--table-stripe-alt);
-      }
-
-      &.no-background {
-        background: none;
-      }
-
-      &.has-parent td:first-of-type {
-        padding-left: 1rem;
-      }
-
-      td.repo-section {
-        font-style: italic;
-        color: var(--text-muted);
-      }
-
-      &.separator {
-        background: none !important;
-        height: 1rem;
-      }
+        &:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
     }
 
-    pre {
-      margin: 0;
-    }
-  }
+    tbody {
+        tr {
+            height: 1.3rem;
+            vertical-align: middle;
 
-  .nested-tree {
-    color: var(--link) !important;
-    font-weight: bold;
-  }
+            &:nth-child(odd) {
+                background: var(--table-stripe);
+            }
+
+            &:nth-child(even) {
+                background: var(--table-stripe-alt);
+            }
+
+            &.no-background {
+                background: none;
+            }
+
+            &.has-parent td:first-of-type {
+                padding-left: 1rem;
+            }
+
+            td.repo-section {
+                font-style: italic;
+                color: var(--text-muted);
+            }
+
+            &.separator {
+                background: none !important;
+                height: 1rem;
+            }
+        }
+
+        pre {
+            margin: 0;
+        }
+    }
+
+    .nested-tree {
+        color: var(--link) !important;
+        font-weight: bold;
+    }
 }
 
 table.commit-info {
-  td, th {
-    padding: 0.1em 1em 0.1em 0.1em;
-  }
+    td,
+    th {
+        padding: 0.1em 1em 0.1em 0.1em;
+    }
+}
+
+// Age-based coloring for time/idle columns
+.age-hours {
+    color: var(--age-hours);
+    font-weight: 600;
+}
+.age-days {
+    color: var(--age-days);
+    font-weight: 500;
+}
+.age-weeks {
+    color: var(--age-weeks);
+}
+.age-months {
+    color: var(--age-months);
+}
+.age-years {
+    color: var(--age-years);
 }

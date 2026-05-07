@@ -37,6 +37,24 @@ pub fn timeago(s: impl Into<Timestamp>) -> Result<String, askama::Error> {
         .convert((OffsetDateTime::now_utc() - s.into().0).try_into().unwrap()))
 }
 
+pub fn age_class(s: impl Into<Timestamp>) -> Result<&'static str, askama::Error> {
+    let elapsed = (OffsetDateTime::now_utc() - s.into().0)
+        .try_into()
+        .unwrap_or(std::time::Duration::MAX);
+    let secs = elapsed.as_secs();
+    Ok(if secs < 86_400 {
+        "age-hours"
+    } else if secs < 7 * 86_400 {
+        "age-days"
+    } else if secs < 30 * 86_400 {
+        "age-weeks"
+    } else if secs < 365 * 86_400 {
+        "age-months"
+    } else {
+        "age-years"
+    })
+}
+
 pub fn file_perms(s: u16) -> Result<String, askama::Error> {
     Ok(unix_mode::to_string(u32::from(s)))
 }
