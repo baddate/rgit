@@ -24,6 +24,7 @@ pub struct View {
     branch: Option<Arc<str>>,
     exported: bool,
     host: String,
+    ssh_clone_url: String,
 }
 
 pub async fn handle(
@@ -31,6 +32,9 @@ pub async fn handle(
     Extension(db): Extension<Arc<rocksdb::DB>>,
     Host(host): Host,
 ) -> Result<impl IntoResponse> {
+    let ssh_host = host.split(':').next().unwrap_or(&host).to_string();
+    let ssh_clone_url = format!("git@{}:{}", ssh_host, repo.display());
+
     tokio::task::spawn_blocking(move || {
         let repository = crate::database::schema::repository::Repository::open(&db, &*repo)?
             .context("Repository does not exist")?;
@@ -63,6 +67,7 @@ pub async fn handle(
             branch: None,
             exported: repository.get().exported,
             host,
+            ssh_clone_url,
         }))
     })
     .await
