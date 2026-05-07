@@ -1,21 +1,44 @@
-use std::{
-    io::{ErrorKind, Write as IoWrite},
-    path::Path,
-    sync::LazyLock,
-};
-
 use comrak::adapters::SyntaxHighlighterAdapter;
+use rust_embed::RustEmbed;
+use std::{io::Cursor, io::Write as IoWrite, path::Path, sync::LazyLock};
 use syntect::{
-    html::{ClassStyle, line_tokens_to_classed_spans, css_for_theme_with_class_style},
     highlighting::ThemeSet,
+    html::{ClassStyle, css_for_theme_with_class_style, line_tokens_to_classed_spans},
     parsing::{ParseState, ScopeStack, SyntaxSet},
     util::LinesWithEndings,
 };
 
 const MAX_FILE_SIZE: usize = 512 * 1024;
 
+#[derive(RustEmbed)]
+#[folder = "assets/"]
+struct ThemeAssets;
+
+fn load_all_themes() -> ThemeSet {
+    let mut ts = ThemeSet::load_defaults();
+
+    for file_path in ThemeAssets::iter() {
+        if file_path.ends_with(".tmTheme") {
+            if let Some(embedded_file) = ThemeAssets::get(&file_path) {
+                let mut reader = Cursor::new(embedded_file.data);
+
+                if let Ok(theme) = ThemeSet::load_from_reader(&mut reader) {
+                    let theme_name = file_path
+                        .strip_suffix(".tmTheme")
+                        .unwrap_or(&file_path)
+                        .to_string();
+
+                    ts.themes.insert(theme_name, theme);
+                }
+            }
+        }
+    }
+
+    ts
+}
+
 static SYNTAX_SET: LazyLock<SyntaxSet> = LazyLock::new(SyntaxSet::load_defaults_newlines);
-static THEME_SET: LazyLock<ThemeSet> = LazyLock::new(ThemeSet::load_defaults);
+static THEME_SET: LazyLock<ThemeSet> = LazyLock::new(load_all_themes);
 
 pub fn prime_syntax_set() {
     let _ = SYNTAX_SET.syntaxes().len();
@@ -23,7 +46,7 @@ pub fn prime_syntax_set() {
 
 pub fn light_highlight_css() -> &'static str {
     static CSS: LazyLock<Box<str>> = LazyLock::new(|| {
-        let theme = &THEME_SET.themes["InspiredGitHub"];
+        let theme = &THEME_SET.themes["latte"];
         Box::from(css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap())
     });
     &CSS
@@ -31,7 +54,7 @@ pub fn light_highlight_css() -> &'static str {
 
 pub fn dark_highlight_css() -> &'static str {
     static CSS: LazyLock<Box<str>> = LazyLock::new(|| {
-        let theme = &THEME_SET.themes["base16-ocean.dark"];
+        let theme = &THEME_SET.themes["macchiato"];
         Box::from(css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap())
     });
     &CSS
@@ -47,7 +70,7 @@ impl SyntaxHighlighterAdapter for ComrakHighlightAdapter {
         code: &str,
     ) -> std::io::Result<()> {
         let out = format_file(code, FileIdentifier::Token(lang.unwrap_or_default()))
-            .map_err(|e| std::io::Error::new(ErrorKind::Other, e))?;
+            .map_err(std::io::Error::other)?;
         output.write_all(out.as_bytes())
     }
 
@@ -118,15 +141,13 @@ pub fn format_file_inner(
     for line in LinesWithEndings::from(content) {
         out.push_str(line_prefix);
         match parse_state.parse_line(line, &SYNTAX_SET) {
-            Ok(ops) => match line_tokens_to_classed_spans(
-                line,
-                &ops,
-                ClassStyle::Spaced,
-                &mut scope_stack,
-            ) {
-                Ok((html, _)) => out.push_str(&html),
-                Err(_) => v_htmlescape::b_escape(line.as_bytes(), out),
-            },
+            Ok(ops) => {
+                match line_tokens_to_classed_spans(line, &ops, ClassStyle::Spaced, &mut scope_stack)
+                {
+                    Ok((html, _)) => out.push_str(&html),
+                    Err(_) => v_htmlescape::b_escape(line.as_bytes(), out),
+                }
+            }
             Err(_) => v_htmlescape::b_escape(line.as_bytes(), out),
         }
         out.push_str(line_suffix);
