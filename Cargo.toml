@@ -50,7 +50,6 @@ hashbrown = { version = "0.14", default-features = false, features = [
 httparse = "1.10"
 humantime = "2.2"
 itertools = "0.12.1"
-md5 = "0.7"
 memchr = "2.7"
 moka = { version = "0.12.10", features = ["future"] }
 path-clean = "1.0.1"
@@ -89,6 +88,7 @@ v_htmlescape = { version = "0.15", features = ["bytes-buf"] }
 xxhash-rust = { version = "0.8.15", features = ["const_xxh3", "xxh3"] }
 yoke = { version = "0.7.5", features = ["derive"] }
 rust-embed = "8.11.0"
+sha2 = "0.11.0"
 
 [features]
 zlib-ng = ["flate2/zlib-ng", "gix/zlib-ng"]

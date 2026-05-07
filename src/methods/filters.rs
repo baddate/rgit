@@ -81,10 +81,7 @@ pub fn gravatar(email: &str) -> Result<&'static str, askama::Error> {
         return Ok(res);
     }
 
-    let url = format!(
-        "https://www.gravatar.com/avatar/{}",
-        const_hex::encode(md5::compute(email).0)
-    );
+    let url = libravatar_url(email);
     let key = Box::leak(Box::from(email));
     let url = url.leak();
 
@@ -95,6 +92,13 @@ pub fn gravatar(email: &str) -> Result<&'static str, askama::Error> {
     });
 
     Ok(url)
+}
+
+fn libravatar_url(email: &str) -> String {
+    use sha2::{Digest, Sha256};
+
+    let hash = const_hex::encode(Sha256::digest(email.trim().to_lowercase().as_bytes()));
+    format!("https://seccdn.libravatar.org/avatar/{hash}")
 }
 
 pub struct Timestamp(OffsetDateTime);
