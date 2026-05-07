@@ -31,4 +31,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /app/rgit /app/bin/rgit
 
+EXPOSE 8000
+
 ENTRYPOINT ["/app/bin/rgit"]

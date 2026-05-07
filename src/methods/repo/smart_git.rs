@@ -1,4 +1,4 @@
-use std::{io, io::ErrorKind, path::Path, process::Stdio, str::FromStr};
+use std::{io, path::Path, process::Stdio, str::FromStr};
 
 use anyhow::{Context, anyhow};
 use axum::{
@@ -69,7 +69,7 @@ pub async fn handle(
     // read request body and forward to stdin
     let mut body = StreamReader::new(
         body.into_data_stream()
-            .map_err(|e| std::io::Error::new(ErrorKind::Other, e)),
+            .map_err(std::io::Error::other),
     );
     tokio::io::copy_buf(&mut body, &mut stdin)
         .await

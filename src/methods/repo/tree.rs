@@ -145,15 +145,12 @@ pub async fn handle(
 
     let db = db_orig.clone();
     let (repo, child_path, lookup_result) = tokio::task::spawn_blocking(move || {
-        if let Some(path) = &child_path {
-            if let Some(item) =
+        if let Some(path) = &child_path
+            && let Some(item) =
                 TreeItem::find_exact(&db, tree_id, path.as_os_str().as_encoded_bytes())?
-            {
-                if let ArchivedTreeItemKind::File = item.get().kind {
+                && let ArchivedTreeItemKind::File = item.get().kind {
                     return Ok((repo, child_path, LookupResult::RealPath));
                 }
-            }
-        }
 
         let path = child_path
             .as_ref()

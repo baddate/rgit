@@ -20,7 +20,6 @@ use std::{
     collections::VecDeque,
     ffi::OsStr,
     fmt::{self, Arguments, Write},
-    io::ErrorKind,
     iter::Copied,
     path::{Path, PathBuf},
     str::FromStr,
@@ -89,10 +88,10 @@ impl Git {
                 })
                 .await
                 .context("Failed to join Tokio task")
-                .map_err(|e| std::io::Error::new(ErrorKind::Other, e))?
+                .map_err(std::io::Error::other)?
                 .map_err(|err| {
                     error!("{}", err);
-                    std::io::Error::new(ErrorKind::Other, "Failed to open repository")
+                    std::io::Error::other("Failed to open repository")
                 })
             })
             .await?;
@@ -688,7 +687,7 @@ impl<T: Copy> SmallVec<T> {
     #[allow(clippy::type_complexity)]
     fn iter(
         &self,
-    ) -> Either<std::iter::Empty<T>, Either<std::iter::Once<T>, Copied<std::slice::Iter<T>>>> {
+    ) -> Either<std::iter::Empty<T>, Either<std::iter::Once<T>, Copied<std::slice::Iter<'_, T>>>> {
         match self {
             Self::None => Either::Left(std::iter::empty()),
             Self::One(v) => Either::Right(Either::Left(std::iter::once(*v))),
