@@ -2,10 +2,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     into_response,
-    methods::{
-        filters,
-        repo::{Refs, Repository, Result},
-    },
+    methods::repo::{Refs, Repository, Result},
 };
 use anyhow::Context;
 use askama::Template;
@@ -15,6 +12,7 @@ use yoke::Yoke;
 
 #[derive(Template)]
 #[template(path = "repo/refs.html")]
+#[allow(dead_code)]
 pub struct View {
     repo: Repository,
     refs: Refs,

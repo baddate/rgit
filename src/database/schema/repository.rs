@@ -138,15 +138,16 @@ impl ArchivedRepository {
         TagTree::new(database, RepositoryId(self.id.0.to_native()))
     }
 
-    pub fn replace_heads(&self, database: &rocksdb::DB, new_heads: &Vec<String>) -> Result<()> {
+    pub fn replace_heads(&self, database: &rocksdb::DB, new_heads: &[String]) -> Result<()> {
         let cf = database
             .cf_handle(REFERENCE_FAMILY)
             .context("missing reference column family")?;
 
+        let new_heads = new_heads.to_vec();
         database.put_cf(
             cf,
             self.id.0.to_native().to_be_bytes(),
-            rkyv::to_bytes::<rkyv::rancor::Error>(new_heads)?,
+            rkyv::to_bytes::<rkyv::rancor::Error>(&new_heads)?,
         )?;
 
         Ok(())
@@ -174,6 +175,7 @@ impl ArchivedRepository {
 }
 
 #[derive(Serialize, Archive, Debug, Clone, PartialEq, Eq, Hash)]
+#[allow(dead_code)]
 pub struct Heads(pub Vec<String>);
 
 #[derive(Serialize, Archive, Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -182,6 +184,12 @@ pub struct RepositoryId(pub u64);
 impl RepositoryId {
     pub fn new() -> Self {
         Self(random())
+    }
+}
+
+impl Default for RepositoryId {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

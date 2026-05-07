@@ -67,10 +67,7 @@ pub async fn handle(
     let mut stdin = child.stdin.take().context("Stdin already taken")?;
 
     // read request body and forward to stdin
-    let mut body = StreamReader::new(
-        body.into_data_stream()
-            .map_err(std::io::Error::other),
-    );
+    let mut body = StreamReader::new(body.into_data_stream().map_err(std::io::Error::other));
     tokio::io::copy_buf(&mut body, &mut stdin)
         .await
         .context("Failed to copy bytes from request to command stdin")?;

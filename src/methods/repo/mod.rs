@@ -247,6 +247,7 @@ impl Deref for RepositoryPath {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+#[allow(dead_code)]
 pub struct InvalidRequest;
 
 impl IntoResponse for InvalidRequest {

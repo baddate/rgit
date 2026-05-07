@@ -148,9 +148,10 @@ pub async fn handle(
         if let Some(path) = &child_path
             && let Some(item) =
                 TreeItem::find_exact(&db, tree_id, path.as_os_str().as_encoded_bytes())?
-                && let ArchivedTreeItemKind::File = item.get().kind {
-                    return Ok((repo, child_path, LookupResult::RealPath));
-                }
+            && let ArchivedTreeItemKind::File = item.get().kind
+        {
+            return Ok((repo, child_path, LookupResult::RealPath));
+        }
 
         let path = child_path
             .as_ref()

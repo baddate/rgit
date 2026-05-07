@@ -1,6 +1,10 @@
 # rgit development commands
 # Usage: just <recipe>
 
+# set env
+export LIBCLANG_PATH := "/opt/homebrew/opt/llvm/lib"
+export DYLD_FALLBACK_LIBRARY_PATH := "/opt/homebrew/opt/llvm/lib"
+
 # Default: list available recipes
 default:
     @just --list
@@ -24,11 +28,11 @@ build-zlib-ng:
 # Run the dev server (requires SCAN_PATH and DB_PATH)
 # Example: just run /path/to/git/repos
 run scan_path="." db_path="/tmp/rgit-dev.db" bind="[::1]:8000":
-    cargo run -- {{bind}} {{scan_path}} -d {{db_path}}
+    cargo run -- {{ bind }} {{ scan_path }} -d {{ db_path }}
 
 # Run with a custom refresh interval (e.g. 30s, 5m)
 run-watch scan_path="." db_path="/tmp/rgit-dev.db" interval="30s":
-    cargo run -- [::1]:8000 {{scan_path}} -d {{db_path}} --refresh-interval {{interval}}
+    cargo run -- [::1]:8000 {{ scan_path }} -d {{ db_path }} --refresh-interval {{ interval }}
 
 # ── Test & Check ──────────────────────────────────────────────────────────────
 
@@ -55,7 +59,7 @@ check: fmt-check lint test
 
 # Build the Docker image
 docker-build tag="rgit:dev":
-    docker build -t {{tag}} .
+    docker build -t {{ tag }} .
 
 # Run via docker-compose
 docker-up:
@@ -98,8 +102,8 @@ clean:
 
 # Remove the dev database
 clean-db db_path="/tmp/rgit-dev.db":
-    rm -rf {{db_path}}
-    @echo "Removed {{db_path}}"
+    rm -rf {{ db_path }}
+    @echo "Removed {{ db_path }}"
 
 # Check for known-vulnerable dependencies
 audit:

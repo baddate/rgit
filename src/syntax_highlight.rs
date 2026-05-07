@@ -18,18 +18,18 @@ fn load_all_themes() -> ThemeSet {
     let mut ts = ThemeSet::load_defaults();
 
     for file_path in ThemeAssets::iter() {
-        if file_path.ends_with(".tmTheme") {
-            if let Some(embedded_file) = ThemeAssets::get(&file_path) {
-                let mut reader = Cursor::new(embedded_file.data);
+        if file_path.ends_with(".tmTheme")
+            && let Some(embedded_file) = ThemeAssets::get(&file_path)
+        {
+            let mut reader = Cursor::new(embedded_file.data);
 
-                if let Ok(theme) = ThemeSet::load_from_reader(&mut reader) {
-                    let theme_name = file_path
-                        .strip_suffix(".tmTheme")
-                        .unwrap_or(&file_path)
-                        .to_string();
+            if let Ok(theme) = ThemeSet::load_from_reader(&mut reader) {
+                let theme_name = file_path
+                    .strip_suffix(".tmTheme")
+                    .unwrap_or(&file_path)
+                    .to_string();
 
-                    ts.themes.insert(theme_name, theme);
-                }
+                ts.themes.insert(theme_name, theme);
             }
         }
     }
@@ -69,8 +69,7 @@ impl SyntaxHighlighterAdapter for ComrakHighlightAdapter {
         lang: Option<&str>,
         code: &str,
     ) -> std::io::Result<()> {
-        let out = format_file(code, FileIdentifier::Token(lang.unwrap_or_default()))
-            .map_err(std::io::Error::other)?;
+        let out = format_file(code, FileIdentifier::Token(lang.unwrap_or_default()));
         output.write_all(out.as_bytes())
     }
 
@@ -97,10 +96,10 @@ pub enum FileIdentifier<'a> {
     Token(&'a str),
 }
 
-pub fn format_file(content: &str, identifier: FileIdentifier<'_>) -> anyhow::Result<String> {
+pub fn format_file(content: &str, identifier: FileIdentifier<'_>) -> String {
     let mut out = String::new();
-    format_file_inner(&mut out, content, identifier, true)?;
-    Ok(out)
+    format_file_inner(&mut out, content, identifier, true);
+    out
 }
 
 pub fn format_file_inner(
@@ -108,7 +107,7 @@ pub fn format_file_inner(
     content: &str,
     identifier: FileIdentifier<'_>,
     code_tag: bool,
-) -> anyhow::Result<()> {
+) {
     let syntax = match identifier {
         FileIdentifier::Path(v) => find_syntax(v),
         FileIdentifier::Token(v) => find_syntax_by_token(v),
@@ -123,7 +122,7 @@ pub fn format_file_inner(
             v_htmlescape::b_escape(line.as_bytes(), out);
             out.push_str(line_suffix);
         }
-        return Ok(());
+        return;
     };
 
     if content.len() > MAX_FILE_SIZE {
@@ -132,7 +131,7 @@ pub fn format_file_inner(
             v_htmlescape::b_escape(line.as_bytes(), out);
             out.push_str(line_suffix);
         }
-        return Ok(());
+        return;
     }
 
     let mut parse_state = ParseState::new(syntax);
@@ -152,8 +151,6 @@ pub fn format_file_inner(
         }
         out.push_str(line_suffix);
     }
-
-    Ok(())
 }
 
 fn find_syntax(file: &Path) -> Option<&'static syntect::parsing::SyntaxReference> {

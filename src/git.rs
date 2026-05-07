@@ -70,6 +70,12 @@ impl Git {
     }
 }
 
+impl Default for Git {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Git {
     #[instrument(skip(self))]
     pub async fn repo(
@@ -157,7 +163,7 @@ impl OpenRepository {
                             (true, Ok(data)) => Content::Text(Cow::Owned(format_file(
                                 data,
                                 FileIdentifier::Path(path.as_path()),
-                            )?)),
+                            ))),
                             (false, Err(_)) => Content::Binary(blob.take_data()),
                             (false, Ok(_data)) => Content::Text(Cow::Owned(unsafe {
                                 String::from_utf8_unchecked(blob.take_data())
@@ -446,9 +452,8 @@ impl PathVisitorHandler for ArchivalVisitor<'_> {
             warn!(%error, "Attempted to write invalid path to archive");
             return Action::Continue;
         }
-        header.set_size(blob.data.len() as u64);
-        #[allow(clippy::cast_sign_loss)]
-        header.set_mode(entry.mode().0.into());
+        header.set_size(u64::try_from(blob.data.len()).unwrap_or(u64::MAX));
+        header.set_mode(u32::from(entry.mode().0));
         header.set_cksum();
 
         if let Err(error) = self.archive.append(&header, blob.data.as_slice()) {
@@ -565,7 +570,7 @@ pub enum ReadmeFormat {
 }
 
 #[derive(Debug)]
-#[allow(unused)]
+#[allow(dead_code)]
 pub struct FileWithContent {
     pub content: Content,
 }
@@ -687,7 +692,8 @@ impl<T: Copy> SmallVec<T> {
     #[allow(clippy::type_complexity)]
     fn iter(
         &self,
-    ) -> Either<std::iter::Empty<T>, Either<std::iter::Once<T>, Copied<std::slice::Iter<'_, T>>>> {
+    ) -> Either<std::iter::Empty<T>, Either<std::iter::Once<T>, Copied<std::slice::Iter<'_, T>>>>
+    {
         match self {
             Self::None => Either::Left(std::iter::empty()),
             Self::One(v) => Either::Right(Either::Left(std::iter::once(*v))),
@@ -817,8 +823,10 @@ fn fetch_diff_and_stats(
              stats| {
                 (
                     max_file_name_length.max(stats.path.len()),
-                    max_change_length
-                        .max(((stats.insertions + stats.deletions + 1).ilog10() + 1) as usize),
+                    max_change_length.max(
+                        usize::try_from((stats.insertions + stats.deletions + 1).ilog10() + 1)
+                            .unwrap_or(usize::MAX),
+                    ),
                     files_changed + 1,
                     insertions + stats.insertions,
                     deletions + stats.deletions,
@@ -1014,8 +1022,8 @@ impl<F: DiffFormatter + Callback> DiffBuilder<'_, F> {
                         .with_counter(),
                 );
 
-                diff.deletions += output.removals as usize;
-                diff.insertions += output.insertions as usize;
+                diff.deletions += usize::try_from(output.removals).unwrap_or(usize::MAX);
+                diff.insertions += usize::try_from(output.insertions).unwrap_or(usize::MAX);
             }
             Operation::ExternalCommand { .. } => {}
             Operation::SourceOrDestinationIsBinary => {
@@ -1089,7 +1097,7 @@ impl<'a> SyntaxHighlightedDiffFormatter<'a> {
 
     fn write(&self, output: &mut String, class: &str, data: &str) {
         write!(output, r#"<span class="diff-{class}">"#).unwrap();
-        format_file_inner(output, data, FileIdentifier::Path(self.path), false).unwrap();
+        format_file_inner(output, data, FileIdentifier::Path(self.path), false);
         output.push_str("</span>");
     }
 }

@@ -39,8 +39,8 @@ pub fn run(scan_path: &Path, repository_list: Option<&Path>, db: &Arc<rocksdb::D
     info!("Starting index update");
 
     update_repository_metadata(scan_path, repository_list, db);
-    update_repository_reflog(scan_path, db.clone());
-    update_repository_tags(scan_path, db.clone());
+    update_repository_reflog(scan_path, db);
+    update_repository_tags(scan_path, db);
 
     info!("Flushing to disk");
 
@@ -148,8 +148,8 @@ fn find_last_committed_time(repo: &gix::Repository) -> Result<OffsetDateTime, an
 }
 
 #[instrument(skip(db))]
-fn update_repository_reflog(scan_path: &Path, db: Arc<rocksdb::DB>) {
-    let repos = match Repository::fetch_all(&db) {
+fn update_repository_reflog(scan_path: &Path, db: &Arc<rocksdb::DB>) {
+    let repos = match Repository::fetch_all(db) {
         Ok(v) => v,
         Err(error) => {
             error!(%error, "Failed to read repository index to update reflog, consider deleting database directory");
@@ -158,7 +158,7 @@ fn update_repository_reflog(scan_path: &Path, db: Arc<rocksdb::DB>) {
     };
 
     for (relative_path, db_repository) in repos {
-        let Some(git_repository) = open_repo(scan_path, &relative_path, db_repository.get(), &db)
+        let Some(git_repository) = open_repo(scan_path, &relative_path, db_repository.get(), db)
         else {
             continue;
         };
@@ -225,7 +225,7 @@ fn update_repository_reflog(scan_path: &Path, db: Arc<rocksdb::DB>) {
             }
         }
 
-        if let Err(error) = db_repository.get().replace_heads(&db, &valid_references) {
+        if let Err(error) = db_repository.get().replace_heads(db, &valid_references) {
             error!(%error, "Failed to update heads");
         }
     }
@@ -468,8 +468,8 @@ impl PathVisitorHandler for TreeItemIndexerVisitor<'_> {
 }
 
 #[instrument(skip(db))]
-fn update_repository_tags(scan_path: &Path, db: Arc<rocksdb::DB>) {
-    let repos = match Repository::fetch_all(&db) {
+fn update_repository_tags(scan_path: &Path, db: &Arc<rocksdb::DB>) {
+    let repos = match Repository::fetch_all(db) {
         Ok(v) => v,
         Err(error) => {
             error!(%error, "Failed to read repository index to update tags, consider deleting database directory");
@@ -478,7 +478,7 @@ fn update_repository_tags(scan_path: &Path, db: Arc<rocksdb::DB>) {
     };
 
     for (relative_path, db_repository) in repos {
-        let Some(git_repository) = open_repo(scan_path, &relative_path, db_repository.get(), &db)
+        let Some(git_repository) = open_repo(scan_path, &relative_path, db_repository.get(), db)
         else {
             continue;
         };

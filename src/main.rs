@@ -214,7 +214,10 @@ async fn main() -> Result<(), anyhow::Error> {
             get(static_favicon(include_bytes!("../statics/favicon.ico"))),
         )
         .fallback(methods::repo::service)
-        .layer(TimeoutLayer::new(args.request_timeout.into()))
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            args.request_timeout.into(),
+        ))
         .layer(layer_fn(LoggingMiddleware))
         .layer(Extension(Arc::new(Git::new())))
         .layer(Extension(db))
@@ -390,7 +393,5 @@ impl<A: IntoResponse, B: IntoResponse> IntoResponse for ResponseEither<A, B> {
 #[cfg(test)]
 mod test {
     #[test]
-    fn placeholder() {
-        assert!(true);
-    }
+    fn placeholder() {}
 }

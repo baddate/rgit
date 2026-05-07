@@ -68,12 +68,11 @@ async fn fetch_dl_branch(
     branch: Option<Arc<str>>,
     open_repo: Arc<OpenRepository>,
 ) -> Result<Arc<str>> {
-    if let Some(branch) = branch.clone() {
+    if let Some(branch) = branch {
         Ok(branch)
     } else {
         Ok(Arc::from(
             open_repo
-                .clone()
                 .default_branch()
                 .await?
                 .unwrap_or_else(|| "master".to_string()),
