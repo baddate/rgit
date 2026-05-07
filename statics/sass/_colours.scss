@@ -1,3 +1,41 @@
-$darkModeHighlightColour: #20c20e;
-$darkModeTextColour: #abb2bf;
-$asideColour: #888;
+// Catppuccin Latte (light)
+:root {
+  --bg: #eff1f5;
+  --bg-surface: #e6e9ef;
+  --bg-overlay: #ccd0da;
+  --text: #4c4f69;
+  --text-muted: #8c8fa1;
+  --border: #dce0e8;
+  --accent: #1e66f5;
+  --link: #1e66f5;
+  --accent-text: #cad3f5;
+  --table-stripe: #e6e9ef;
+  --table-stripe-alt: #eff1f5;
+  --diff-add: rgba(64, 160, 43, 0.15);
+  --diff-remove: rgba(210, 15, 57, 0.15);
+  --hover-light: rgba(30, 102, 245, 0.08);
+  --hover-dark: rgba(30, 102, 245, 0.08);
+  --dropdown-border: rgba(30, 102, 245, 0.1);
+}
+
+// Catppuccin Macchiato (dark)
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #24273a;
+    --bg-surface: #181926;
+    --bg-overlay: #363a4f;
+    --text: #cad3f5;
+    --text-muted: #6e738d;
+    --border: #363a4f;
+    --accent: #8aadf4;
+    --link: #8aadf4;
+    --accent-text: #24273a;
+    --table-stripe: #1e2030;
+    --table-stripe-alt: #24273a;
+    --diff-add: rgba(166, 218, 149, 0.15);
+    --diff-remove: rgba(237, 135, 150, 0.15);
+    --hover-light: rgba(138, 173, 244, 0.08);
+    --hover-dark: rgba(138, 173, 244, 0.08);
+    --dropdown-border: rgba(138, 173, 244, 0.15);
+  }
+}

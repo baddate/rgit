@@ -7,10 +7,7 @@
 }
 
 table {
-  @media (prefers-color-scheme: dark) {
-    color: darken($darkModeHighlightColour, 20%);
-  }
-
+  color: var(--accent);
   border-collapse: collapse;
 
   th, td {
@@ -31,19 +28,11 @@ table.repositories {
   width: 100%;
 
   a {
-    color: black;
-
-    @media (prefers-color-scheme: dark) {
-      color: darken($darkModeHighlightColour, 15%);
-    }
+    color: var(--text);
 
     &:hover {
-      color: #00f;
-
-      @media (prefers-color-scheme: dark) {
-        color: darken($darkModeHighlightColour, 15%);
-        text-decoration: underline;
-      }
+      color: var(--accent);
+      text-decoration: underline;
     }
   }
 
@@ -53,19 +42,11 @@ table.repositories {
       vertical-align: middle;
 
       &:nth-child(odd) {
-        background: #f7f7f7;
-
-        @media (prefers-color-scheme: dark) {
-          background: #111;
-        }
+        background: var(--table-stripe);
       }
 
       &:nth-child(even) {
-        background: #e1e1e1;
-
-        @media (prefers-color-scheme: dark) {
-          background: none;
-        }
+        background: var(--table-stripe-alt);
       }
 
       &.no-background {
@@ -78,7 +59,7 @@ table.repositories {
 
       td.repo-section {
         font-style: italic;
-        color: #888;
+        color: var(--text-muted);
       }
 
       &.separator {
@@ -93,12 +74,8 @@ table.repositories {
   }
 
   .nested-tree {
-    color: blue !important;
+    color: var(--link) !important;
     font-weight: bold;
-
-    @media (prefers-color-scheme: dark) {
-      color: $darkModeTextColour !important;
-    }
   }
 }
 
