@@ -1,7 +1,6 @@
-version: '3'
 services:
   rgit:
-    image: ghcr.io/w4/rgit:main
+    image: ghcr.io/baddate/rgit:main
     command:
       - "[::]:8000"
       - /git
